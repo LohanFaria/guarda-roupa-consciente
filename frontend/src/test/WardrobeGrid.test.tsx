@@ -11,7 +11,7 @@ const mockPecas: Peca[] = [
     subcategoria: 'camiseta',
     cor_primaria: 'branco',
     cores_secundarias: [],
-    estacao: 'verão',
+    estacao: 'verao',
     ocasiao: 'casual',
     estilo: 'básico',
     padrao_estampa: 'lisa',
@@ -19,7 +19,8 @@ const mockPecas: Peca[] = [
     url_imagem_sem_fundo: 'https://example.com/tshirt-nobg.png',
     status_processamento: 'concluido',
     vezes_usada: 2,
-    usuario_id: 'user-test'
+    usuario_id: 'user-test',
+    criado_em: '2026-08-19T00:00:00.000Z'
   },
   {
     id: 2,
@@ -36,7 +37,8 @@ const mockPecas: Peca[] = [
     url_imagem_sem_fundo: 'https://example.com/pants-nobg.png',
     status_processamento: 'concluido',
     vezes_usada: 0,
-    usuario_id: 'user-test'
+    usuario_id: 'user-test',
+    criado_em: '2026-08-19T00:00:00.000Z'
   }
 ];
 

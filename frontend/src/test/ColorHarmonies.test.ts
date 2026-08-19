@@ -18,7 +18,8 @@ const mockWardrobe: Peca[] = [
     url_imagem_sem_fundo: 'url1',
     status_processamento: 'concluido',
     vezes_usada: 5,
-    usuario_id: 'u1'
+    usuario_id: 'u1',
+    criado_em: '2026-08-19T00:00:00.000Z'
   },
   {
     id: 2,
@@ -27,7 +28,7 @@ const mockWardrobe: Peca[] = [
     subcategoria: 'camisa',
     cor_primaria: 'verde',
     cores_secundarias: [],
-    estacao: 'verão',
+    estacao: 'verao',
     ocasiao: 'casual',
     estilo: 'casual',
     padrao_estampa: 'lisa',
@@ -35,7 +36,8 @@ const mockWardrobe: Peca[] = [
     url_imagem_sem_fundo: 'url2',
     status_processamento: 'concluido',
     vezes_usada: 0, // Peça esquecida (ODS 12)
-    usuario_id: 'u1'
+    usuario_id: 'u1',
+    criado_em: '2026-08-19T00:00:00.000Z'
   },
   {
     id: 3,
@@ -44,7 +46,7 @@ const mockWardrobe: Peca[] = [
     subcategoria: 'bermuda',
     cor_primaria: 'bege',
     cores_secundarias: [],
-    estacao: 'verão',
+    estacao: 'verao',
     ocasiao: 'casual',
     estilo: 'casual',
     padrao_estampa: 'lisa',
@@ -52,7 +54,8 @@ const mockWardrobe: Peca[] = [
     url_imagem_sem_fundo: 'url3',
     status_processamento: 'concluido',
     vezes_usada: 1,
-    usuario_id: 'u1'
+    usuario_id: 'u1',
+    criado_em: '2026-08-19T00:00:00.000Z'
   },
   {
     id: 4,
@@ -69,7 +72,8 @@ const mockWardrobe: Peca[] = [
     url_imagem_sem_fundo: 'url4',
     status_processamento: 'concluido',
     vezes_usada: 4,
-    usuario_id: 'u1'
+    usuario_id: 'u1',
+    criado_em: '2026-08-19T00:00:00.000Z'
   }
 ];
 

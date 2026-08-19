@@ -10,7 +10,7 @@ const mockPeca: Peca = {
   subcategoria: 'camiseta',
   cor_primaria: 'preto',
   cores_secundarias: [],
-  estacao: 'verão',
+  estacao: 'verao',
   ocasiao: 'casual',
   estilo: 'básico',
   padrao_estampa: 'lisa',
@@ -18,7 +18,8 @@ const mockPeca: Peca = {
   url_imagem_sem_fundo: 'https://example.com/nobg.png',
   status_processamento: 'concluido',
   vezes_usada: 3,
-  usuario_id: 'user-test-1'
+  usuario_id: 'user-test-1',
+  criado_em: '2026-08-19T00:00:00.000Z'
 };
 
 describe('Agente de Automação de UI: Componente WardrobeItemCard (Padrão GOAT)', () => {
@@ -35,7 +36,7 @@ describe('Agente de Automação de UI: Componente WardrobeItemCard (Padrão GOAT
 
     // 3. Subtítulo com Cor e Estação
     const subtitle = screen.getByTestId('card-subtitle');
-    expect(subtitle).toHaveTextContent('preto • verão');
+    expect(subtitle).toHaveTextContent('preto • verao');
 
     // 4. Imagem renderizada no container uniforme
     const image = screen.getByTestId('card-image');
