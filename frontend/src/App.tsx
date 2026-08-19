@@ -52,6 +52,12 @@ export const App: React.FC = () => {
     );
   };
 
+  // Excluir peça
+  const handleDeletePeca = async (pecaId: number) => {
+    await wardrobeService.excluirPeca(pecaId);
+    setPecas(prev => prev.filter(p => p.id !== pecaId));
+  };
+
   // Salvar look nos favoritos
   const handleSalvarLook = async (look: OutfitSugerido) => {
     await wardrobeService.salvarLook(look);
@@ -91,6 +97,7 @@ export const App: React.FC = () => {
               <WardrobeGrid
                 pecas={pecas}
                 onUseHoje={handleUseHoje}
+                onDeletePeca={handleDeletePeca}
                 onOpenUpload={() => setIsUploadOpen(true)}
               />
             )}

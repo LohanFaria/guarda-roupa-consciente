@@ -70,6 +70,20 @@ export const wardrobeService = {
   },
 
   async incrementarUsoPeca(pecaId: number): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data }: any = await (supabase.from('pecas') as any).select('vezes_usada').eq('id', pecaId).single();
+        if (data) {
+          await (supabase.from('pecas') as any).update({
+            vezes_usada: (data.vezes_usada || 0) + 1,
+            ultimo_uso: new Date().toISOString()
+          }).eq('id', pecaId);
+        }
+      } catch (e) {
+        console.error('Erro ao incrementar no Supabase:', e);
+      }
+    }
+
     const pecas = await this.listarPecas();
     const atualizadas = pecas.map(p => {
       if (p.id === pecaId) {
@@ -82,6 +96,20 @@ export const wardrobeService = {
       return p;
     });
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(atualizadas));
+  },
+
+  async excluirPeca(pecaId: number): Promise<void> {
+    if (isSupabaseConfigured()) {
+      try {
+        await (supabase.from('pecas') as any).delete().eq('id', pecaId);
+      } catch (e) {
+        console.error('Erro ao excluir no Supabase:', e);
+      }
+    }
+
+    const pecas = await this.listarPecas();
+    const filtradas = pecas.filter(p => p.id !== pecaId);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtradas));
   },
 
   async listarLooksSalvos(): Promise<OutfitSugerido[]> {
