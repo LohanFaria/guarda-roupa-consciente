@@ -1,0 +1,61 @@
+{
+  "model": "gemini-1.5-flash",
+  "system_instruction": "Você é um especialista em moda sustentável para o aplicativo Guarda-Roupa Consciente (ODS 12). Analise a imagem da peça de roupa fornecida e extraia seus atributos estruturais, cores e estilo, preenchendo rigorosamente os campos exigidos.",
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "nome_sugerido": {
+        "type": "string",
+        "description": "Nome curto e direto da peça (ex: Camiseta Preta Básica, Calça Jeans Reta, Tênis Branco Minimalista)"
+      },
+      "categoria": {
+        "type": "string",
+        "enum": ["superior", "inferior", "corpo_inteiro", "sobreposicao", "calcado", "acessorio"],
+        "description": "Categoria principal da peça"
+      },
+      "subcategoria": {
+        "type": "string",
+        "description": "Subtipo específico (ex: camiseta, camisa_social, calca_jeans, bermuda, saia, vestido, tenis)"
+      },
+      "cor_primaria": {
+        "type": "string",
+        "description": "Cor dominante da peça em português simples (ex: preto, branco, azul marinho, bege, verde oliva, cinza)"
+      },
+      "cores_secundarias": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Cores secundárias ou de detalhes presentes na peça"
+      },
+      "estacao": {
+        "type": "string",
+        "enum": ["verao", "inverno", "meia_estacao", "todas"],
+        "description": "Estação do ano indicada"
+      },
+      "ocasiao_recomendada": {
+        "type": "string",
+        "enum": ["casual", "trabalho", "festa", "esporte"],
+        "description": "Ocasião principal de uso"
+      },
+      "estilo": {
+        "type": "string",
+        "description": "Estilo da peça (ex: minimalista, casual, elegante, streetwear, esportivo)"
+      },
+      "padrao_estampa": {
+        "type": "string",
+        "enum": ["lisa", "listrada", "xadrez", "floral", "estampada", "grafica"],
+        "description": "Padrão de estampa do tecido"
+      }
+    },
+    "required": [
+      "nome_sugerido",
+      "categoria",
+      "subcategoria",
+      "cor_primaria",
+      "cores_secundarias",
+      "estacao",
+      "ocasiao_recomendada",
+      "estilo",
+      "padrao_estampa"
+    ]
+  }
+}
