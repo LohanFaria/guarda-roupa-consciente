@@ -34,7 +34,7 @@ async def health_check():
     return HealthResponse(
         status="ok",
         version="1.0.0",
-        ai_service="gemini-1.5-flash (ativo)" if has_gemini else "gemini-1.5-flash (chave pendente no .env)"
+        ai_service="gemini-flash (ativo)" if has_gemini else "gemini-flash (chave pendente no .env)"
     )
 
 @app.post("/api/process-clothing", response_model=ProcessClothingResponse)

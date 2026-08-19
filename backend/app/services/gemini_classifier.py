@@ -5,10 +5,13 @@ from app.schemas import ClothingMetadata
 
 logger = logging.getLogger(__name__)
 
+# Lista de modelos com fallback automático de redundância
+MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-2.5-pro']
+
 def classificar_roupa_com_gemini(imagem_pil: Image.Image) -> ClothingMetadata:
     """
-    Envia a imagem da peça de roupa para o Google Gemini 1.5 Flash com Structured JSON Outputs.
-    Se a chave não estiver configurada ou a chamada falhar, retorna um fallback seguro para permitir testes.
+    Envia a imagem da peça de roupa para o Google Gemini com Structured JSON Outputs.
+    Possui sistema de fallback automático entre modelos Gemini e resposta segura de contingência.
     """
     if not GEMINI_API_KEY or GEMINI_API_KEY == "your_gemini_api_key_here":
         logger.warning("GEMINI_API_KEY não configurada. Usando fallback de desenvolvimento.")
@@ -35,29 +38,39 @@ def classificar_roupa_com_gemini(imagem_pil: Image.Image) -> ClothingMetadata:
             "Examine detalhadamente a foto da peça de roupa e forneça a classificação exata dos atributos solicitados."
         )
 
-        response = client.models.generate_content(
-            model='gemini-3.6-flash',
-            contents=[imagem_pil, prompt],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=ClothingMetadata,
-                temperature=0.1
-            ),
-        )
+        last_error = None
+        for model_name in MODELS_TO_TRY:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=[imagem_pil, prompt],
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=ClothingMetadata,
+                        temperature=0.1
+                    ),
+                )
+                logger.info(f"Classificação realizada com sucesso usando modelo: {model_name}")
+                return ClothingMetadata.model_validate_json(response.text)
+            except Exception as model_err:
+                logger.warning(f"Tentativa com {model_name} falhou: {model_err}. Tentando próximo modelo...")
+                last_error = model_err
 
-        return ClothingMetadata.model_validate_json(response.text)
+        if last_error:
+            logger.error(f"Todos os modelos Gemini falharam: {last_error}")
 
     except Exception as e:
-        logger.error(f"Erro na chamada do Gemini: {e}")
-        # Retorno de fallback gracioso para não travar a experiência do usuário
-        return ClothingMetadata(
-            nome_sugerido="Peça Identificada",
-            categoria="superior",
-            subcategoria="casual",
-            cor_primaria="preto",
-            cores_secundarias=[],
-            estacao="todas",
-            ocasiao_recomendada="casual",
-            estilo="casual",
-            padrao_estampa="lisa"
-        )
+        logger.error(f"Erro geral no cliente Gemini: {e}")
+
+    # Fallback gracioso para nunca quebrar a experiência do usuário
+    return ClothingMetadata(
+        nome_sugerido="Peça Identificada",
+        categoria="superior",
+        subcategoria="casual",
+        cor_primaria="preto",
+        cores_secundarias=[],
+        estacao="todas",
+        ocasiao_recomendada="casual",
+        estilo="casual",
+        padrao_estampa="lisa"
+    )
