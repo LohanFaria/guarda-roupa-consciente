@@ -1,14 +1,23 @@
 import io
+import os
+import sys
 import base64
 import logging
 import asyncio
+from pathlib import Path
+
+# Garante que a pasta backend esteja sempre no sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 from app.config import GEMINI_API_KEY
 from app.schemas import ProcessClothingResponse, HealthResponse
-from app.services.bg_remover import remover_fundo_roupa, normalizar_imagem
+from app.services.bg_remover import remover_fundo_roupa
 from app.services.gemini_classifier import classificar_roupa_com_gemini
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
