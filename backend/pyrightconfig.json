@@ -1,12 +1,12 @@
 {
   "include": [
-    "backend"
+    "."
   ],
   "extraPaths": [
-    "backend",
-    "backend/app"
+    ".",
+    "app"
   ],
-  "venvPath": "backend",
+  "venvPath": ".",
   "venv": "venv",
   "reportMissingImports": "none",
   "reportMissingModuleSource": "none"
