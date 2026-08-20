@@ -5,9 +5,15 @@ import { INITIAL_MOCK_PECAS } from './mockWardrobeData';
 const LOCAL_STORAGE_KEY = 'guarda_roupa_pecas_v1';
 const LOCAL_LOOKS_KEY = 'guarda_roupa_looks_v1';
 
+// Verifica se a string é um UUID válido
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 export const wardrobeService = {
-  async listarPecas(usuarioId: string = 'local-user'): Promise<Peca[]> {
-    if (isSupabaseConfigured()) {
+  async listarPecas(usuarioId?: string): Promise<Peca[]> {
+    if (isSupabaseConfigured() && usuarioId && isValidUUID(usuarioId)) {
       try {
         const { data, error } = await supabase
           .from('pecas')
@@ -29,7 +35,10 @@ export const wardrobeService = {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
         console.error('Erro ao ler localStorage', e);
       }
@@ -47,7 +56,7 @@ export const wardrobeService = {
       criado_em: new Date().toISOString()
     };
 
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && novaPeca.usuario_id && isValidUUID(novaPeca.usuario_id)) {
       try {
         const response: any = await (supabase.from('pecas') as any)
           .insert([novaPeca])
@@ -63,7 +72,7 @@ export const wardrobeService = {
     }
 
     // Salva no LocalStorage
-    const pecas = await this.listarPecas(novaPeca.usuario_id);
+    const pecas = await this.listarPecas();
     const atualizadas = [pecaCompleta, ...pecas];
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(atualizadas));
     return pecaCompleta;

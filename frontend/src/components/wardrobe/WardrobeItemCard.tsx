@@ -7,7 +7,7 @@ interface WardrobeItemCardProps {
   onClick?: () => void;
 }
 
-const WardrobeItemCardComponent: React.FC<WardrobeItemCardProps> = ({ peca, onClick }) => {
+export const WardrobeItemCard: React.FC<WardrobeItemCardProps> = ({ peca, onClick }) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -76,6 +76,3 @@ const WardrobeItemCardComponent: React.FC<WardrobeItemCardProps> = ({ peca, onCl
     </article>
   );
 };
-
-// Vercel performance guideline: Memoize catalog card items to prevent re-render cascading
-export const WardrobeItemCard = React.memo(WardrobeItemCardComponent);

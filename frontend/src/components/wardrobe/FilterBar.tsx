@@ -18,7 +18,7 @@ const CATEGORIAS = [
   { id: 'corpo_inteiro', label: 'Peça Única' }
 ] as const;
 
-const FilterBarComponent: React.FC<FilterBarProps> = ({
+export const FilterBar: React.FC<FilterBarProps> = ({
   categoriaAtiva,
   onSelectCategoria,
   busca,
@@ -77,5 +77,3 @@ const FilterBarComponent: React.FC<FilterBarProps> = ({
     </div>
   );
 };
-
-export const FilterBar = React.memo(FilterBarComponent);
