@@ -7,16 +7,26 @@ interface WardrobeItemCardProps {
   onClick?: () => void;
 }
 
-export const WardrobeItemCard: React.FC<WardrobeItemCardProps> = ({ peca, onClick }) => {
+const WardrobeItemCardComponent: React.FC<WardrobeItemCardProps> = ({ peca, onClick }) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
   return (
     <article
       onClick={onClick}
-      className="group relative flex flex-col overflow-hidden rounded-2xl bg-neutral-900/70 hover:bg-neutral-900 border border-neutral-800/80 hover:border-neutral-700/80 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      aria-label={`Ver detalhes de ${peca.nome}`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl bg-neutral-900/70 hover:bg-neutral-900 border border-neutral-800/80 hover:border-neutral-700/80 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
       data-testid="wardrobe-card"
       data-peca-id={peca.id}
     >
       {/* Badge de Reuso Discreto */}
-      <div className="absolute top-2.5 right-2.5 z-10">
+      <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
         {peca.vezes_usada > 0 ? (
           <div 
             className="flex items-center gap-1 text-[10px] font-semibold text-neutral-400 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/5"
@@ -39,7 +49,7 @@ export const WardrobeItemCard: React.FC<WardrobeItemCardProps> = ({ peca, onClic
       <div className="relative w-full aspect-square bg-neutral-950 flex items-center justify-center p-5 overflow-hidden">
         <img
           src={peca.url_imagem_sem_fundo || peca.url_imagem_original}
-          alt={peca.nome}
+          alt={`${peca.nome} (${peca.cor_primaria})`}
           className="max-h-full max-w-full object-contain filter drop-shadow-lg group-hover:scale-105 transition-transform duration-300 ease-out"
           loading="lazy"
           data-testid="card-image"
@@ -66,3 +76,6 @@ export const WardrobeItemCard: React.FC<WardrobeItemCardProps> = ({ peca, onClic
     </article>
   );
 };
+
+// Vercel performance guideline: Memoize catalog card items to prevent re-render cascading
+export const WardrobeItemCard = React.memo(WardrobeItemCardComponent);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Peca } from '../../types/wardrobe.types';
 import { X, CheckCircle, Trash2, Calendar, Palette, Sun, Compass } from 'lucide-react';
 
@@ -17,12 +17,25 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   onUseHoje,
   onDelete,
 }) => {
+  // Acessibilidade: Fechar modal ao pressionar ESC
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !peca) return null;
 
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
       data-testid="item-detail-modal"
     >
       <div 
@@ -32,7 +45,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         {/* Botão Fechar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 text-neutral-400 hover:text-white border border-white/10 transition-colors"
+          aria-label="Fechar detalhes da peça"
+          className="absolute top-4 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 text-neutral-400 hover:text-white border border-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
           data-testid="modal-close-button"
         >
           <X className="w-5 h-5" />
@@ -42,9 +56,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         <div className="relative w-full aspect-[4/3] bg-neutral-950 flex items-center justify-center p-8 border-b border-neutral-800/80">
           <img
             src={peca.url_imagem_sem_fundo || peca.url_imagem_original}
-            alt={peca.nome}
+            alt={`${peca.nome} - categoria ${peca.categoria}`}
             className="max-h-full max-w-full object-contain filter drop-shadow-xl"
             data-testid="modal-image"
+            loading="lazy"
           />
           <div className="absolute bottom-3 left-4">
             <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 backdrop-blur-md">
@@ -56,7 +71,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         {/* Informações da Peça */}
         <div className="p-6 flex-1 overflow-y-auto space-y-5">
           <div>
-            <h2 className="text-xl font-bold text-white tracking-tight" data-testid="modal-title">
+            <h2 id="modal-title" className="text-xl font-bold text-white tracking-tight" data-testid="modal-title">
               {peca.nome}
             </h2>
             <p className="text-sm text-neutral-400 mt-0.5 capitalize">
@@ -106,7 +121,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                 onUseHoje(peca.id);
                 onClose();
               }}
-              className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+              className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               data-testid="modal-use-today-button"
             >
               <CheckCircle className="w-4 h-4" />
@@ -121,7 +136,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     onClose();
                   }
                 }}
-                className="w-full py-3 px-4 rounded-2xl bg-neutral-800/60 hover:bg-rose-500/10 text-neutral-400 hover:text-rose-400 text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 rounded-2xl bg-neutral-800/60 hover:bg-rose-500/10 text-neutral-400 hover:text-rose-400 text-xs font-semibold transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
                 data-testid="modal-delete-button"
               >
                 <Trash2 className="w-3.5 h-3.5" />

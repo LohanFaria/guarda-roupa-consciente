@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header } from './components/layout/Header';
 import { BottomNav, type TabType } from './components/layout/BottomNav';
 import { WardrobeGrid } from './components/wardrobe/WardrobeGrid';
@@ -40,7 +40,7 @@ export const App: React.FC = () => {
   }, []);
 
   // Carrega dados iniciais
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     try {
       setIsLoading(true);
       const [pecasList, looksList] = await Promise.all([
@@ -54,61 +54,64 @@ export const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     carregarDados();
-  }, [userEmail]);
+  }, [carregarDados, userEmail]);
 
   // Cadastrar nova peça
-  const handlePecaSalva = async (novaPeca: NovaPeca) => {
+  const handlePecaSalva = useCallback(async (novaPeca: NovaPeca) => {
     const salva = await wardrobeService.cadastrarPeca(novaPeca);
     setPecas(prev => [salva, ...prev]);
     setActiveTab('wardrobe');
-  };
+  }, []);
 
   // Registrar uso de uma peça avulsa
-  const handleUseHoje = async (pecaId: number) => {
+  const handleUseHoje = useCallback(async (pecaId: number) => {
     await wardrobeService.incrementarUsoPeca(pecaId);
     setPecas(prev =>
       prev.map(p => (p.id === pecaId ? { ...p, vezes_usada: (p.vezes_usada || 0) + 1 } : p))
     );
-  };
+  }, []);
 
   // Excluir peça
-  const handleDeletePeca = async (pecaId: number) => {
+  const handleDeletePeca = useCallback(async (pecaId: number) => {
     await wardrobeService.excluirPeca(pecaId);
     setPecas(prev => prev.filter(p => p.id !== pecaId));
-  };
+  }, []);
 
   // Salvar look nos favoritos
-  const handleSalvarLook = async (look: OutfitSugerido) => {
+  const handleSalvarLook = useCallback(async (look: OutfitSugerido) => {
     await wardrobeService.salvarLook(look);
     const atualizados = await wardrobeService.listarLooksSalvos();
     setLooksSalvos(atualizados);
-  };
+  }, []);
 
   // Registrar uso do look completo
-  const handleUsarLook = async (look: OutfitSugerido) => {
+  const handleUsarLook = useCallback(async (look: OutfitSugerido) => {
     for (const p of look.pecas) {
       await wardrobeService.incrementarUsoPeca(p.id);
     }
     const pecasAtualizadas = await wardrobeService.listarPecas();
     setPecas(pecasAtualizadas);
-  };
+  }, []);
 
   // Sair da conta
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     if (isSupabaseConfigured()) {
       await supabase.auth.signOut();
     }
     setUserEmail(null);
-  };
+  }, []);
 
-  // Cálculo da taxa de reuso para o Header
-  const totalPecas = pecas.length;
-  const pecasUsadas = pecas.filter(p => p.vezes_usada > 0).length;
-  const taxaReuso = totalPecas > 0 ? Math.round((pecasUsadas / totalPecas) * 100) : 0;
+  // Cálculo memoizado de taxa de reuso (Regra Vercel: rerender-derived-state-no-effect)
+  const { totalPecas, taxaReuso } = useMemo(() => {
+    const total = pecas.length;
+    const usadas = pecas.filter(p => p.vezes_usada > 0).length;
+    const taxa = total > 0 ? Math.round((usadas / total) * 100) : 0;
+    return { totalPecas: total, taxaReuso: taxa };
+  }, [pecas]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0A0A0C] text-white">

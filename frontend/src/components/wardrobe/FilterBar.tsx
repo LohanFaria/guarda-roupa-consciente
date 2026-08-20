@@ -16,9 +16,9 @@ const CATEGORIAS = [
   { id: 'calcado', label: 'Calçados' },
   { id: 'sobreposicao', label: 'Casacos' },
   { id: 'corpo_inteiro', label: 'Peça Única' }
-];
+] as const;
 
-export const FilterBar: React.FC<FilterBarProps> = ({
+const FilterBarComponent: React.FC<FilterBarProps> = ({
   categoriaAtiva,
   onSelectCategoria,
   busca,
@@ -29,19 +29,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     <div className="flex flex-col gap-3" data-testid="filter-bar">
       {/* Campo de Busca Minimalista */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
         <input 
           type="text"
           value={busca}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Buscar por cor, categoria ou estilo..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs sm:text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
+          aria-label="Buscar roupas no armário"
+          className="w-full pl-10 pr-4 py-2.5 rounded-full bg-neutral-900 border border-neutral-800 text-xs sm:text-sm text-neutral-100 placeholder-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent transition-colors"
           data-testid="search-input"
         />
       </div>
 
       {/* Abas de Categorias Estilo GOAT Minimalista */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <div 
+        role="tablist" 
+        aria-label="Filtros de categoria do guarda-roupa"
+        className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar"
+      >
         {CATEGORIAS.map(cat => {
           const count = totalPecasPorCategoria[cat.id] || 0;
           const isSelected = categoriaAtiva === cat.id;
@@ -49,8 +54,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           return (
             <button
               key={cat.id}
+              role="tab"
+              aria-selected={isSelected}
               onClick={() => onSelectCategoria(cat.id)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs transition-all duration-150 flex items-center gap-1.5 ${
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs transition-all duration-150 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 isSelected
                   ? 'bg-neutral-100 text-neutral-950 font-bold shadow-sm'
                   : 'bg-neutral-900/90 border border-neutral-800 text-neutral-400 hover:text-neutral-200 hover:border-neutral-700'
@@ -70,3 +77,5 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     </div>
   );
 };
+
+export const FilterBar = React.memo(FilterBarComponent);
