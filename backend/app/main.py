@@ -1,16 +1,17 @@
 import io
 import base64
 import logging
+import asyncio
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 from app.config import GEMINI_API_KEY
 from app.schemas import ProcessClothingResponse, HealthResponse
-from app.services.bg_remover import remover_fundo_roupa
+from app.services.bg_remover import remover_fundo_roupa, normalizar_imagem
 from app.services.gemini_classifier import classificar_roupa_com_gemini
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("guarda-roupa-api")
 
 app = FastAPI(
@@ -19,17 +20,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS para aceitar requisições do frontend Vite (local ou em produção)
+# Configuração robusta de CORS para suportar Localhost, PWA e Vercel
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 @app.get("/health", response_model=HealthResponse)
-async def health_check():
+def health_check():
     has_gemini = bool(GEMINI_API_KEY and GEMINI_API_KEY != "your_gemini_api_key_here")
     return HealthResponse(
         status="ok",
@@ -37,43 +38,64 @@ async def health_check():
         ai_service="gemini-flash (ativo)" if has_gemini else "gemini-flash (chave pendente no .env)"
     )
 
+def _executar_pipeline_imagem(contents: bytes, filename: str) -> ProcessClothingResponse:
+    """
+    Função síncrona executada em threadpool para não bloquear o event loop do FastAPI.
+    """
+    try:
+        image_original = Image.open(io.BytesIO(contents))
+    except Exception as img_err:
+        logger.error(f"Erro ao abrir formato de imagem: {img_err}")
+        raise HTTPException(
+            status_code=400,
+            detail="O arquivo enviado não é uma imagem válida ou está corrompido."
+        )
+
+    # 1. Normalização & Remoção de fundo (rembg)
+    image_nobg = remover_fundo_roupa(image_original)
+
+    # 2. Categorização inteligente (Google Gemini Vision)
+    metadata = classificar_roupa_com_gemini(image_nobg)
+
+    # 3. Converter imagem sem fundo para Base64 PNG
+    buffered = io.BytesIO()
+    image_nobg.save(buffered, format="PNG", optimize=True)
+    nobg_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    logger.info(f"Peça processada com sucesso: {metadata.nome_sugerido} | Categoria: {metadata.categoria}")
+
+    return ProcessClothingResponse(
+        success=True,
+        metadata=metadata,
+        image_nobg_base64=f"data:image/png;base64,{nobg_base64}",
+        message="Imagem processada e categorizada com sucesso."
+    )
+
 @app.post("/api/process-clothing", response_model=ProcessClothingResponse)
 async def process_clothing(file: UploadFile = File(...)):
     """
-    Recebe uma imagem da peça de vestuário, executa remoção de fundo e extrai os atributos usando IA.
+    Endpoint assíncrono para envio de foto da roupa.
+    Executa o corte de fundo e a inferência de IA sem bloquear conexões simultâneas.
     """
-    try:
-        logger.info(f"Processando imagem recebida: {file.filename} ({file.content_type})")
-        
-        contents = await file.read()
-        image_original = Image.open(io.BytesIO(contents)).convert("RGB")
-        
-        # 1. Remoção de fundo (rembg)
-        image_nobg = remover_fundo_roupa(image_original)
-        
-        # 2. Categorização inteligente (Google Gemini 1.5 Flash)
-        metadata = classificar_roupa_com_gemini(image_nobg)
-        
-        # 3. Converter imagem sem fundo para Base64 PNG
-        buffered = io.BytesIO()
-        image_nobg.save(buffered, format="PNG")
-        nobg_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        
-        logger.info(f"Processamento concluído com sucesso: {metadata.nome_sugerido} ({metadata.categoria})")
-        
-        return ProcessClothingResponse(
-            success=True,
-            metadata=metadata,
-            image_nobg_base64=f"data:image/png;base64,{nobg_base64}",
-            message="Imagem processada e categorizada com sucesso."
+    # Validação de tipo de arquivo
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tipo de arquivo não suportado: {file.content_type}. Envie uma imagem (JPEG, PNG, WebP)."
         )
 
-    except Exception as e:
-        logger.error(f"Erro ao processar imagem de vestuário: {e}", exc_info=True)
+    logger.info(f"Recebendo upload: {file.filename} (content-type: {file.content_type})")
+    
+    contents = await file.read()
+    if not contents or len(contents) == 0:
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro interno no pipeline de imagem: {str(e)}"
+            status_code=400,
+            detail="O arquivo enviado está vazio."
         )
+
+    # Executa processamento pesado em threadpool para alta performance
+    resultado = await asyncio.to_thread(_executar_pipeline_imagem, contents, file.filename or "foto.jpg")
+    return resultado
 
 if __name__ == "__main__":
     import uvicorn

@@ -5,8 +5,13 @@ from app.schemas import ClothingMetadata
 
 logger = logging.getLogger(__name__)
 
-# Lista de modelos com fallback automático de redundância
-MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-2.5-pro']
+# Modelos prioritários ativos e testados com resposta rápida
+MODELS_TO_TRY = [
+    'gemini-3.6-flash',
+    'gemini-3.7-flash',
+    'gemini-2.5-pro',
+    'gemini-flash-latest'
+]
 
 def classificar_roupa_com_gemini(imagem_pil: Image.Image) -> ClothingMetadata:
     """
